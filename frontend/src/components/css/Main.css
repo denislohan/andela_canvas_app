@@ -1,0 +1,115 @@
+.App {
+  text-align: center;
+}
+
+#logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 10vmin;
+  position: relative;
+  justify-content: center;
+  pointer-events: none;
+
+
+}
+.tray {
+  padding: 20px 15px;
+  background-color: rgb(98, 40, 116);
+  color: #FFFF45;
+}
+
+
+  table, th, td {
+    border: 4px solid black;
+    text-align:left;
+    font-size: 18
+  }
+
+
+#fellows .tray:hover{
+  height:150px;
+}
+
+._body{
+  position: relative;
+  display: flex;
+  max-width: 100%;
+}
+#tableData{
+  position: relative;
+  width: 50%;
+  left: 0;
+  background-color: #9aa041;
+  border-style: 'outset'
+
+}
+#fellows{
+  position: relative;
+  width: 50%;
+  }
+
+
+
+.tray .App-header {
+  background-color: #3a5281;
+  min-height: 50px;
+  display: flex;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+.Header-end {
+  position: relative;
+  width: 50%;
+  background-color: #1a8357;
+  display: flex;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-header img {
+  position: relative;
+  left: 40%;
+  width: 30%
+}
+
+
+.App-header general-list{
+  position: relative;
+  left: 10%;
+  width: 15%;
+  padding: 20px;
+  
+}
+
+general-list:hover #classList{
+  display:block
+
+}
+  .App-header general-list a{
+    color: white;
+    text-decoration: #3a5281;
+    cursor:pointer
+  }
+
+.App-header sub-missions{
+  position: relative;
+  left: 20%;
+  width: 15%
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(720deg);
+  }
+}
+
+@keyframes App-logo-stop {
+  from {left: 0px;}
+  to {left: 200px;}
+}
