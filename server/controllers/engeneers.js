@@ -7,6 +7,7 @@ class CanvasControler{
   constructor(){
     this.promiseResolve = this.promiseResolve.bind(this);
     this.getList = this.getList.bind(this);
+    this.getWeekData=this.getWeekData.bind(this)
     
 
   }
@@ -15,7 +16,6 @@ class CanvasControler{
     return new Promise(resolve => {
       bareCanvas.helpers.getAllResources(options,(err,result)=>{
         resolve(err?err:result)
-
       // api.on(event, response => resolve(response));
     });
   })
@@ -34,52 +34,60 @@ class CanvasControler{
 }
 
   async getList(req,res){
-
+    //const group = await this.main(req.body.courseId+'/assignment_groups')
+    //var group_id = group[0].id
     const data = await this.main(req.body.courseId+'/users')
-    this.getEngineerSubmissionsHist(req)
+    this.getEngineerSubmissionsHist(req,res,1)
     res.send (data)
 
     }
 
-    getSpecficCohort(cohortNum){
+    async getWeekData(req,res){
+      this.getEngineerSubmissionsHist(req,res)
+      res.send("fetching Data via socket")
 
     }
 
-    async getEngineerSubmissionsHist(req){
-      var thi_s =this;
-      
+    async getEngineerSubmissionsHist(req,res,ioEmit){
+      var thi_s =this; 
       const io = req.app.get('socket_io')
+      let data ={}
+      data.index = 1
 
-      var data ={}
-      //var courseId = req.body.courseId
-
-      // get the course id and fetch all of the assignments
-      const assignms = await this.main('219/assignments')
+      let allData = []
+      const assignms = await this.main(`${req.body.courseId}/assignments`)
       console.log(assignms.length)
-      var assName;
 
-     for (var l in assignms){
+      await Promise.all(assignms.map(el=>{
 
-       (async function (t){
-        //assName = assignms[t].name;
-        await thi_s.main('219/assignments/'+assignms[t].id+'/submissions').then((submsns)=>{
+        return new Promise((resolve,reject) =>{
+          //console.log('assign ', el.name)
 
-        for (var index in submsns){
-          (function (i){
-          data[submsns[i].user_id] ={}
-          data[submsns[i].user_id].assignName = assignms[t].name
-          data[submsns[i].user_id].numofsub = submsns[index].attempt
-          data[submsns[i].user_id].score = submsns[index].score
-      
-          if(l == assignms.length -1  && i == submsns.length - 1 ){
-            io.emit('full_data',data)
-          }
+          if(el.published && el.name.split(':')[1] && el.name.indexOf('Assignment') < 0)
+            thi_s.main(`${req.body.courseId}/assignments/`+el.id+`/submissions`)
+              .then((submsns)=>{
+                for (var index in submsns){
+                    (function (i){
+                      data[submsns[i].user_id] ={}
+                      data[submsns[i].user_id].assignName = el.name
+                      data[submsns[i].user_id].numofsub = submsns[index].attempt
+                      data[submsns[i].user_id].submittedAt = submsns[index].submitted_at
+                      data[submsns[i].user_id].score = submsns[index].score
+                      data[submsns[i].user_id].isLate = submsns[index].late
+                      data[submsns[i].user_id].due_date = submsns[index].cached_due_date
 
-          })(index)}
+                    })(index)
+                }
+              if (ioEmit) io.emit('full_data',data)
+              data.index ++ 
+              resolve()
+            })
+
+        })
 
 
-      })
-    } )(l)}
+    }))
+    return allData
   }
     
 }

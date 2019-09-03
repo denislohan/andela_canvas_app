@@ -3,18 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "arr_list": "^1.0.3",
     "axios": "^0.18.0",
+    "dotenv": "^8.1.0",
+    "enzyme": "^3.9.0",
+    "enzyme-adapter-react-15": "^1.4.0",
+    "enzyme-adapter-react-16": "^1.12.1",
+    "moment": "^2.24.0",
     "react": "^16.8.6",
+    "react-add-to-calendar": "^0.1.5",
+    "react-datetime-picker": "^2.6.0",
     "react-dom": "^16.8.6",
-    "react-redux": "^7.0.1",
+    "react-flexbox-grid": "^2.1.2",
+    "react-modal": "^3.9.1",
+    "react-redux": "^7.1.0",
+    "react-score-indicator": "^2.1.1",
     "react-scripts": "2.1.8",
     "react-sticky-header": "^0.2.0",
     "react-table": "^6.9.2",
-    "redux": "^4.0.1",
+    "redux": "^4.0.4",
+    "redux-devtools-extension": "^2.13.8",
+    "redux-thunk": "^2.3.0",
+    "serve": "^11.1.0",
+    "slack-notify": "^0.1.7",
     "socket.io-client": "^2.2.0"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start:dev": "react-scripts start",
+    "start:prod": "yarn build && ./node_modules/serve/bin/serve.js build",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -27,5 +43,6 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {}
 }

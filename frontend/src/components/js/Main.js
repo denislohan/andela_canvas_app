@@ -1,20 +1,33 @@
 import React, { Component } from 'react';
 import logo from '../static/logo.svg';
+import google_ca from '../static/google_ca.jpeg'
 import '../css/Main.css';
 import Store from '../../store'
+import real_store from '../../redux/store'
 import axios from 'axios'
 import ReactDOM from 'react-dom'; 
 import socketIOClient from "socket.io-client";
-import Utils from '../utils/utils'
-import 'react-sticky-header/styles.css';
+import {stopLoader} from '../utils/utils'
+import slack_ from 'slack-notify'
+import createEngineersList from '../../helpers/functions'
+import ScoreCard from './Graph'
+import { Grid, Row, Col } from 'react-flexbox-grid';
+import createCaEvents from '../../helpers/createCaEvents';
+import Model from '../models/calendar'
+import ArrayList from 'arr_list'
+import {Provider,connect} from 'react-redux'
+import actions from '../../redux/actions/index'
 
-
-//store.dispatch({ type: "updateFellows", item: {fellow1:"lohan"} });
-
+const eventsList = new ArrayList()
+var slack = slack_('https://hooks.slack.com/services/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')
 const storeObject = new Store(),
       store = storeObject.getStore()
 
-console.log(store.getState())
+const mapDispatchToProps=(dispatch)=>{
+  return{
+    storeSubmissions : (submissions)=>dispatch(actions.storeSubmissions(submissions))
+  }
+}
 
 class App extends Component {
   
@@ -25,12 +38,16 @@ class App extends Component {
       mouseout:true,
       endPoint:'localhost:4001',
       socket:socketIOClient,
-      fullData:[]
+      fullData:[],
+      course:null,
+      total_outputs:0,
+      events:[]
     }
     this.fetchActiveUsers = this.fetchActiveUsers.bind(this);
-    this.handleHover = this.handleHover.bind(this);
+    this.getEngList = this.getEngList.bind(this);
     this.fetchFellow = this.fetchFellow.bind(this)
-    this.onScroll=this.onScroll.bind(this)
+    this.updateCourse =this.updateCourse.bind(this)
+    this.handleCalendarEvents = this.handleCalendarEvents.bind(this)
   }
 
   componentDidMount() {
@@ -38,32 +55,53 @@ class App extends Component {
     const socket = socketIOClient(endPoint);
     socket.on("full_data", data => {
       let keys=Object.keys(data)
-      console.log(data[keys[0]].assignName.split(':')[0])
-
       this.state.fullData[data[keys[0]].assignName.split(':')[0]] = data
-
-      Utils.stopLoader('logo')
+      this.state.total_outputs = data.index
+      stopLoader('logo')
 
     });
 
-    store.subscribe(()=>{
-    })
-
-
-   // registering listeners
     document.getElementsByClassName('App')[0].addEventListener('scroll', this.onScroll , true, true);
-
   }
 
-  onScroll(){
-    
-  }
-  fetchFellow(fellowId, courseId){
-    console.log('felow Id')
-    console.log(fellowId)
+  handleCalendarEvents(e){
+    const fellows = store.getState()['FellowsList']
+    let fellowData = {}
+    const data = this.state.fullData
+    var curr_id, submssn, event
+    for (var index  in fellows){
+     curr_id= fellows[index].id  
+     for (var output in data){ //for each assgn
+      for (var id in data[output]){ // for each submissn
+        if (id == curr_id){ 
+          submssn = data[output][id]
+          fellowData [data[output][id].assignName] = submssn
+            if(data[output][id].assignName.split(':')[1] && data[output][id].assignName.indexOf('Assignment') < 0 ){
+              event = createCaEvents(submssn)
+              if(!eventsList.contains(event))
+                eventsList.add(event)
+            }
+          }
+        }
+    }
+    this.props.storeSubmissions(eventsList.arr)
 
+    ReactDOM.render(
+      <Provider store ={real_store}>
+        <Model/>,
+      </Provider>,
+      document.getElementById('models'))
+    }
+  }
+
+  updateCourse(e){
+    this.state.course = e.target.value
+  }
+
+  fetchFellow(fellowId, courseId,fellowName){
   var fellowData = {}
   let data = this.state.fullData;
+  let numOfAss = this.state.total_outputs
   
   var tr =[]
   var table = React.createElement('table',{},
@@ -71,35 +109,45 @@ class App extends Component {
                     React.createElement('th',{},'OUTPUT'),
                     React.createElement('th',{},'ATEMPTS'),
                     React.createElement('th',{},'SCORE'),
-                  
                 ),
                 React.createElement('tbody',{},tr)
-  
   )
-console.log("datttttttta")
+
+  let total = 0,
+    numOfop = 0,
+    sub_lateness = 0,
+    all_lateness = 0
 
   for (var output in data){
-
       for (var id in data[output]){
         if (id == fellowId){
 
           fellowData [data[output][id].assignName] = data[output][id]
-
           //create table
-          tr.push(
-            React.createElement('tr',{},
-             [
-               React.createElement('td',{},data[output][id].assignName),
-               React.createElement('td',{},data[output][id].numofsub),
-               React.createElement('td',{},data[output][id].score)
-             ]
-           )
-          )
+          if(data[output][id].assignName.split(':')[1] && data[output][id].assignName.indexOf('Assignment') < 0 ){
+            console.log("Date  ",)
+            if(new Date > new Date(data[output][id].due_date))
+              all_lateness++
+            console.log('late ', data[output][id])
+            //counting the number of outputs
+            if (data[output][id].numofsub){ //if submitted 
+              numOfop++
+              if(data[output][id].isLate)
+                sub_lateness++            }
+            tr.push(
+              React.createElement('tr',{},
+                [
+                  React.createElement('td',{},data[output][id].assignName),
+                  React.createElement('td',{},data[output][id].numofsub),
+                  React.createElement('td',{},data[output][id].score)
+                ]
+              )
+            )
+            total+= data[output][id].score;
+          }
 
         }
       }
-
-
   }
 
   ReactDOM.render(
@@ -107,60 +155,48 @@ console.log("datttttttta")
     document.getElementById('tableData')
   )
 
+  ReactDOM.render(
+    <ScoreCard value={numOfop} max={numOfAss} title = {'Delivelered vs Total'}/>,
+    document.getElementById('scoreCard')
+  )
+  ReactDOM.render(
+    <ScoreCard value={numOfop} max={all_lateness} title = {' Delivelered vs expected'}/>,
+    document.getElementById('scoreCard2')
+  )
+  ReactDOM.render(
+    <ScoreCard value= {numOfop-sub_lateness}max={numOfop} title = {' Delivelered on time'}/>,
+    document.getElementById('scoreCard3')
+  )
+  ReactDOM.render(
+    <ScoreCard colors = {[
+      '#3da940','#3da940','#3da940','#53b83a','#84c42b','#f1bc00','#ed8d00','#d12000',
+    ]} value={(numOfAss-numOfop)- (all_lateness - sub_lateness)} max= {numOfAss-numOfop}  title = {' Late & Undelivered Pending  '}
+   
+    />,
+    document.getElementById('scoreCard4')
+  )
+  
+  slack.send({
+    channel: '#test_app',
+    text: `@here
+    LMS ouputs results for ${fellowName}`,
+    fields: {
+      'Number of  OutPuts submitted': `${numOfop}`,
+      'Average': `${total/18}`
+    },
+    username: 'canvas bot'
+  });
+  return fellowData
   }
 
-  handleHover(e){
-
-    console.log('debug')
-      const id = e.target.parentNode.getAttribute('id'),
-      fellow= storeObject.findFellow(id) ;
-    
-      if(!this.state.currentFellow[fellow.id]){
-
-        this.state.currentFellow[fellow.id]=fellow;
-        //console.log(this.state.currentFellow)
-       this.fetchFellow(id,219)
-
-
-        const fellowSecData= React.createElement('span',{id:'email'},
-        [
-          React.createElement('p',{},'Email:'+ fellow.email),
-          React.createElement('p',{},'Course:'+ fellow.courseId),
-        ]
-      
-      )
-
-        ReactDOM.render(
-          fellowSecData,
-          document.getElementById(fellow.email) 
-        )
-
-
-
-
-
-
-      }
-
-    else{
-      console.log('removing')
-      ReactDOM.unmountComponentAtNode(document.getElementById('tableData'))
-      ReactDOM.unmountComponentAtNode(document.getElementById(this.state.currentFellow[fellow.id].email))
-        this.state.currentFellow[fellow.id] = null
-
-    }
-    //this.state.clicked = !this.state.clicked 
-
+  getEngList(e){
+      createEngineersList(e,this)
   }
   
- 
-
   async fetchActiveUsers(courseId){
   var data = {
-    courseId:219
+    courseId:this.state.course
   }
-
-  console.log('retreaving the active users')
 
 if(!storeObject.hasActiveUsers()) //taking advantage of the store state
   axios.post('http://localhost:4001/engineers/list',data, 
@@ -173,8 +209,6 @@ if(!storeObject.hasActiveUsers()) //taking advantage of the store state
     
     let fellows = list.data;
     var list = []
-
-
     // a react  element 'div' to handle fellow's list
     var fellowsDiv= React.createElement('div',{className:'fellows_C'},list)
 
@@ -191,7 +225,7 @@ if(!storeObject.hasActiveUsers()) //taking advantage of the store state
       },
     [
         React.createElement('div',{className:'Header-end',style:{width:'97%', height:'30px'},
-      onClick:this.handleHover
+      onClick:this.getEngList
       },fellows[index].name),
        
         React.createElement('div',{
@@ -199,9 +233,7 @@ if(!storeObject.hasActiveUsers()) //taking advantage of the store state
           id:fellows[index].email
         },
 
-        
         )
-
     ]
       )
      )
@@ -210,41 +242,61 @@ if(!storeObject.hasActiveUsers()) //taking advantage of the store state
     ReactDOM.render( 
       fellowsDiv,  
       document.getElementById("fellows") 
-); 
-
+    ) 
   })
-
 }
-  
+
   render() {
+
     return (
       <div className="App">
-        {/* Header */}
-
-        {/* <StickyHeader > */}
-
+      <title>LMS Performance Tracker</title>
         <div className = 'tray'>
           <header className="App-header">
-          <general-list><a onClick={this.fetchActiveUsers}>Active Students</a>
+          <general-list><a onClick={this.fetchActiveUsers}>Active Engineers</a>
           </general-list>
-          <sub-missions >Submissions
-          </sub-missions>
-          <img src={logo} id ='logo' className="App-logo" alt="logo" /> 
+          <course-tag>
+            Course ID <input onChange = {this.updateCourse}/>
+          </course-tag>
+         
+          <calendar-button>
+            <img width = '20px' height = 'auto' src = {google_ca}
+                onClick ={this.handleCalendarEvents}
+
+            />
+          </calendar-button>
+          <img src={logo} id ='logo' className="App-logo" alt="logo" 
+          /> 
           </header>
         </div>
         
         {/* </StickyHeader> */}
         <div className ='_body'> 
           <div id = 'fellows'></div>
-          <div id = 'tableData'></div>
+          <div id = 'results'>
+          <div id = 'tableData'>
+          </div>
+            <Grid fluid>
+              <Row>
+                <Col xs={25} md={3} lg={3}>
+                <div id ='scoreCard'></div>
+                </Col>
+                <Col xs={25} md={3} lg={3}>
+                <div id ='scoreCard2'></div>
+                </Col>
+                <Col xs={25} md={3} lg={3}>
+                <div id ='scoreCard3'></div>
+                </Col>
+                <Col xs={25} md={3} lg={3}>
+                <div id ='scoreCard4'></div>
+                </Col>
+              </Row>
+            </Grid>
+          </div>
         </div>
-    </div>
-
-
-
-
+      </div>
     );
   }
 }
 
-export default App;
+export default connect(null, mapDispatchToProps) (App);

@@ -19,7 +19,7 @@ app.use(function(req, res, next) {
  app.use(bodyParser.urlencoded({ extended: true }))
  app.use(bodyParser.json())
  
-const PORT =process.env.PORT || 4001;
+const PORT = process.env.PORT || 4001;
 //app.use(cors)
 
 var server= app.listen(PORT,()=>{

@@ -5,9 +5,7 @@ import Controller from '../controllers/engeneers'
 const controller = new Controller()
 const router = express.Router()
 
-router.post('/list',controller.getList)
-router.get('/data/week',controller.getWeekData)
-
+router.get('/week',controller.getWeekData)
 export default router
 
 
