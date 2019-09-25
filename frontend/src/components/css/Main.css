@@ -80,7 +80,7 @@ img {
 
 .App-header general-list{
   position: relative;
-  left: 10%;
+  left: 20%;
   width: 15%;
   padding: 20px;
   
@@ -97,7 +97,7 @@ general-list:hover #classList{
 
 .App-header course-tag{
   position: relative;
-  left: 20%;
+  left: 10%;
   width: 15%
 }
 

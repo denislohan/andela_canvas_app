@@ -17,6 +17,7 @@ import Model from '../models/calendar'
 import ArrayList from 'arr_list'
 import {Provider,connect} from 'react-redux'
 import actions from '../../redux/actions/index'
+import $ from 'jquery'
 
 const eventsList = new ArrayList()
 var slack = slack_('https://hooks.slack.com/services/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')
@@ -48,10 +49,12 @@ class App extends Component {
     this.fetchFellow = this.fetchFellow.bind(this)
     this.updateCourse =this.updateCourse.bind(this)
     this.handleCalendarEvents = this.handleCalendarEvents.bind(this)
+    this.componentDidMount=this.componentDidMount.bind(this)
   }
 
   componentDidMount() {
     const { endPoint } = this.state;
+    const self = this
     const socket = socketIOClient(endPoint);
     socket.on("full_data", data => {
       let keys=Object.keys(data)
@@ -60,6 +63,12 @@ class App extends Component {
       stopLoader('logo')
 
     });
+    $("#course-tag").on('keyup', function (e) {
+      if (e.keyCode === 13) {
+        console.log('enter pressed')
+        self.fetchActiveUsers();
+      }
+  });
 
     document.getElementsByClassName('App')[0].addEventListener('scroll', this.onScroll , true, true);
   }
@@ -193,7 +202,7 @@ class App extends Component {
       createEngineersList(e,this)
   }
   
-  async fetchActiveUsers(courseId){
+  async fetchActiveUsers(){
   var data = {
     courseId:this.state.course
   }
@@ -206,7 +215,10 @@ if(!storeObject.hasActiveUsers()) //taking advantage of the store state
 
   }).then(async (list)=>{
     await store.dispatch({ type: "UPDATEFELLOWS", item: list.data});
-    
+    if(!list.data.length){
+      alert('no confirmed engineer under your section')
+      return
+    }
     let fellows = list.data;
     var list = []
     // a react  element 'div' to handle fellow's list
@@ -253,11 +265,13 @@ if(!storeObject.hasActiveUsers()) //taking advantage of the store state
       <title>LMS Performance Tracker</title>
         <div className = 'tray'>
           <header className="App-header">
-          <general-list><a onClick={this.fetchActiveUsers}>Active Engineers</a>
-          </general-list>
-          <course-tag>
+          <course-tag id ='course-tag'>
             Course ID <input onChange = {this.updateCourse}/>
           </course-tag>
+          
+          <general-list id = 'general-list'><a onClick={this.fetchActiveUsers}>Active Engineers</a>
+          </general-list>
+          
          
           <calendar-button>
             <img width = '20px' height = 'auto' src = {google_ca}

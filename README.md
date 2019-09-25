@@ -5,7 +5,9 @@ This is an external LMS app for easily getting an overview of how cohort enginee
 ## Setting up environment
 
 1. To run the app you will need to install both docker and docker-compose. For mac open [https://docs.docker.com/docker-for-mac/install/]. I comes with both
-2. You will need  canvas permissions to view data of your engineers. <br/>Go to canvas, account->settings->New Access Token. <br/> Paste it in the .env for CANVAS_API_KEY
+2. You will need  canvas permissions to view data of your engineers. <br/>Go to canvas, account->settings->New Access Token. <br/> Paste it in the root .env for <CANVAS_API_KEY> key
+
+3. You are provided with example.env files in both root and server directoris. Copy their content into the sister .env files you will create in the respective directories.
 
 ## How to run the app?
 
