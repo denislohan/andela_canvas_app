@@ -7,7 +7,7 @@ import real_store from '../../redux/store'
 import axios from 'axios'
 import ReactDOM from 'react-dom'; 
 import socketIOClient from "socket.io-client";
-import {stopLoader} from '../utils/utils'
+import {stopLoader,runLoader} from '../utils/utils'
 import slack_ from 'slack-notify'
 import createEngineersList from '../../helpers/functions'
 import ScoreCard from './Graph'
@@ -53,6 +53,7 @@ class App extends Component {
   }
 
   componentDidMount() {
+    stopLoader('logo');
     const { endPoint } = this.state;
     const self = this
     const socket = socketIOClient(endPoint);
@@ -65,7 +66,6 @@ class App extends Component {
     });
     $("#course-tag").on('keyup', function (e) {
       if (e.keyCode === 13) {
-        console.log('enter pressed')
         self.fetchActiveUsers();
       }
   });
@@ -207,7 +207,8 @@ class App extends Component {
     courseId:this.state.course
   }
 
-if(!storeObject.hasActiveUsers()) //taking advantage of the store state
+if(!storeObject.hasActiveUsers()){ //taking advantage of the store state
+  runLoader('logo')
   axios.post('http://localhost:4001/engineers/list',data, 
     { headers: {
       'Content-Type': 'application/json',
@@ -256,6 +257,7 @@ if(!storeObject.hasActiveUsers()) //taking advantage of the store state
       document.getElementById("fellows") 
     ) 
   })
+  }
 }
 
   render() {
