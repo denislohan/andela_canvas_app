@@ -1,7 +1,7 @@
 import React from 'react';
 import App from '../js/Main';
 import Enzyme from 'enzyme'
-import Adapter from 'enzyme-adapter-react-16'
+import Adapter from 'enzyme-adapter-reac t-16'
 import {shallow,mount,render} from 'enzyme';
 Enzyme.configure({ adapter: new Adapter() })  
 
@@ -16,7 +16,6 @@ Enzyme.configure({ adapter: new Adapter() })
 // it('It should render the App without crashing', ()=>{
 //   expect(app.find('.App')).not.toBe(null);
   
-
 // })
 
 
@@ -24,13 +23,10 @@ Enzyme.configure({ adapter: new Adapter() })
 
 //   //console.log(getApp().html())
 //   expect(app.find('.App').childAt(0).hasClass('tray')).toBe(true); // issue here
-
 //   expect(wrapper.text()).toContain('anvas APP')
-
 //   // const div = document.createElement('div');
 //   // ReactDOM.render(<App />, div);
 //   // ReactDOM.unmountComponentAtNode(div);
-
 // });
 // })
 

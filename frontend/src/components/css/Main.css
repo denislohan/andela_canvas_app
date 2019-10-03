@@ -89,17 +89,24 @@ img {
 general-list:hover #classList{
   display:block
 }
+  .App-header course-tag{
+    position: relative;
+    left: 10%;
+    width: 15%
+  }
+  .App-header .select{
+    position: relative;
+    left: 20%;
+    width: 50%
+  }
   .App-header general-list a{
     color: white;
     text-decoration: #3a5281;
     cursor:pointer
   }
 
-.App-header course-tag{
-  position: relative;
-  left: 10%;
-  width: 15%
-}
+
+
 
 .App-header calendar-button{
   position:relative;

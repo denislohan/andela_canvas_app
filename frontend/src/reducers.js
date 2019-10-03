@@ -12,6 +12,7 @@
     switch(action.type){
 
       case 'UPDATEFELLOWS' : state.FellowsList= action.item
+      case 'STORECONTEXT' : state.context = action.context
 
     }
     console.log('reducer', state);

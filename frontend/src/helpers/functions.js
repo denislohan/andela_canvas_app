@@ -4,11 +4,11 @@ import Store from '../store'
 
 const storeObject = new Store(),
       store = storeObject.getStore()
-
-const createEngeneersList = (e,context) =>{
+const createEngineersList = (e,context) =>{
 
     const id = e.target.parentNode.getAttribute('id'),
-      fellow= storeObject.findFellow(id) ;
+    fellow= storeObject.findFellow(id) ;
+
 
       if(!context.state.currentFellow[fellow.id]){
 
@@ -18,7 +18,6 @@ const createEngeneersList = (e,context) =>{
         const fellowSecData= React.createElement('span',{id:'email'},
             [
                 React.createElement('p',{},'Email:'+ fellow.email),
-                React.createElement('p',{},'Course:'+ fellow.courseId),
             ]
       
       )
@@ -32,11 +31,56 @@ const createEngeneersList = (e,context) =>{
     else{
       ReactDOM.unmountComponentAtNode(document.getElementById('tableData'))
       ReactDOM.unmountComponentAtNode(document.getElementById('scoreCard'))
+      ReactDOM.unmountComponentAtNode(document.getElementById('scoreCard2'))
+      ReactDOM.unmountComponentAtNode(document.getElementById('scoreCard3'))
+      ReactDOM.unmountComponentAtNode(document.getElementById('scoreCard4'))
+
 
       ReactDOM.unmountComponentAtNode(document.getElementById(context.state.currentFellow[fellow.id].email))
         context.state.currentFellow[fellow.id] = null
     }
 
 }
+const updateFellowlist = (fellows,data,getEngList) => {
+  renderFellowlist(fellows,data,getEngList)
+}
+const renderFellowlist=(fellows,data,getEngList)=>{
+  console.log("function =>",getEngList)
+  var list = []
+  // a react  element 'div' to handle fellow's list
+  var fellowsDiv= React.createElement('div',{className:'fellows_C'},list)
 
-export default createEngeneersList
+  for (var index in fellows){
+    fellows[index].courseId= data.courseId;
+
+   list.push(React.createElement('div', 
+    {
+      key:fellows[index].id,
+      className:'tray', 
+      id :fellows[index].id,
+      style:{width:'60%', backgroundColor:'#9aa041',display:'block',borderStyle: 'outset'},
+
+    },
+  [
+      React.createElement('div',{className:'Header-end',style:{width:'97%', height:'30px'},
+    onClick:getEngList
+    },fellows[index].name),
+     
+      React.createElement('div',{
+        key:fellows[index].email,
+        id:fellows[index].email
+      },
+
+      )
+  ]
+    )
+   )
+        
+  }
+  ReactDOM.render( 
+    fellowsDiv,  
+    document.getElementById("fellows") 
+  ) 
+}
+
+export {createEngineersList,renderFellowlist,updateFellowlist}

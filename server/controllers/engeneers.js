@@ -7,9 +7,7 @@ class CanvasControler{
   constructor(){
     this.promiseResolve = this.promiseResolve.bind(this);
     this.getList = this.getList.bind(this);
-    this.getWeekData=this.getWeekData.bind(this)
-    
-
+  
   }
 
   promiseResolve(options){
@@ -21,9 +19,9 @@ class CanvasControler{
   })
   }
 
-  async main(params){
+  async main(params,fromACourse=true){
     let options = {
-      url: 'https://andela.instructure.com/api/v1/courses/'+params,
+      url: `https://andela.instructure.com/api/v1/${fromACourse?'courses/':''}${params}`,
       data: {
         per_page: 100
       }
@@ -34,18 +32,11 @@ class CanvasControler{
 }
 
   async getList(req,res){
-    //const group = await this.main(req.body.courseId+'/assignment_groups')
-    //var group_id = group[0].id
     const data = await this.main(req.body.courseId+'/users')
-    this.getEngineerSubmissionsHist(req,res,1)
-    res.send (data)
-
-    }
-
-    async getWeekData(req,res){
-      this.getEngineerSubmissionsHist(req,res)
-      res.send("fetching Data via socket")
-
+    if(!data && data.Error) 
+      return res.send (data)
+    this.getEngineerSubmissionsHist(req,res,true)
+    res.send(data)
     }
 
     async getEngineerSubmissionsHist(req,res,ioEmit){
@@ -56,12 +47,10 @@ class CanvasControler{
 
       let allData = []
       const assignms = await this.main(`${req.body.courseId}/assignments`)
-      console.log(assignms.length)
-
+      if(Array.isArray(assignms))
       await Promise.all(assignms.map(el=>{
 
         return new Promise((resolve,reject) =>{
-          //console.log('assign ', el.name)
 
           if(el.published && el.name.split(':')[1] && el.name.indexOf('Assignment') < 0)
             thi_s.main(`${req.body.courseId}/assignments/`+el.id+`/submissions`)

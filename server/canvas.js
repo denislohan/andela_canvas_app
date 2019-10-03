@@ -1,5 +1,4 @@
 import canvas from 'canvas-api-wrapper'
-
 canvas.subdomain= 'andela'
 canvas.apiToken = '11758~C3Gi4G3yid8S9iuzSsoV0mJ4qCHVy1Z7KhW5SU3F4tOcHqyCzsuJlY1QtAhmtZ8M'
 canvas.rateLimitBuffer = 300;

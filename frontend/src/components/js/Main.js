@@ -1,15 +1,17 @@
 import React, { Component } from 'react';
+import Select from '../js/select'
 import logo from '../static/logo.svg';
 import google_ca from '../static/google_ca.jpeg'
 import '../css/Main.css';
 import Store from '../../store'
 import real_store from '../../redux/store'
+import FellowList from  '../js/fellowList'
 import axios from 'axios'
 import ReactDOM from 'react-dom'; 
 import socketIOClient from "socket.io-client";
 import {stopLoader,runLoader} from '../utils/utils'
 import slack_ from 'slack-notify'
-import createEngineersList from '../../helpers/functions'
+import {createEngineersList,renderFellowlist} from '../../helpers/functions'
 import ScoreCard from './Graph'
 import { Grid, Row, Col } from 'react-flexbox-grid';
 import createCaEvents from '../../helpers/createCaEvents';
@@ -26,7 +28,8 @@ const storeObject = new Store(),
 
 const mapDispatchToProps=(dispatch)=>{
   return{
-    storeSubmissions : (submissions)=>dispatch(actions.storeSubmissions(submissions))
+    storeSubmissions : (submissions)=>dispatch(actions.storeSubmissions(submissions)),
+    fetchSections : (course) => dispatch (actions.fetchSections(course))
   }
 }
 
@@ -51,7 +54,7 @@ class App extends Component {
     this.handleCalendarEvents = this.handleCalendarEvents.bind(this)
     this.componentDidMount=this.componentDidMount.bind(this)
   }
-
+ 
   componentDidMount() {
     stopLoader('logo');
     const { endPoint } = this.state;
@@ -134,10 +137,10 @@ class App extends Component {
           fellowData [data[output][id].assignName] = data[output][id]
           //create table
           if(data[output][id].assignName.split(':')[1] && data[output][id].assignName.indexOf('Assignment') < 0 ){
-            console.log("Date  ",)
+            //console.log("Date  ",)
             if(new Date > new Date(data[output][id].due_date))
               all_lateness++
-            console.log('late ', data[output][id])
+            //console.log('late ', data[output][id])
             //counting the number of outputs
             if (data[output][id].numofsub){ //if submitted 
               numOfop++
@@ -198,7 +201,8 @@ class App extends Component {
   return fellowData
   }
 
-  getEngList(e){
+  async getEngList(e){
+    console.log('clicked')
       createEngineersList(e,this)
   }
   
@@ -209,59 +213,29 @@ class App extends Component {
 
 if(!storeObject.hasActiveUsers()){ //taking advantage of the store state
   runLoader('logo')
+    this.props.fetchSections(data.courseId)
+
   axios.post('http://localhost:4001/engineers/list',data, 
     { headers: {
       'Content-Type': 'application/json',
     }
 
   }).then(async (list)=>{
-    await store.dispatch({ type: "UPDATEFELLOWS", item: list.data});
+
+    store.dispatch({ type: "UPDATEFELLOWS", item: list.data});
+
     if(!list.data.length){
       alert('no confirmed engineer under your section')
       return
     }
-    let fellows = list.data;
-    var list = []
-    // a react  element 'div' to handle fellow's list
-    var fellowsDiv= React.createElement('div',{className:'fellows_C'},list)
-
-    for (var index in fellows){
-      fellows[index].courseId= data.courseId;
-
-     list.push(React.createElement('div', 
-      {
-        key:fellows[index].id,
-        className:'tray', 
-        id :fellows[index].id,
-        style:{width:'60%', backgroundColor:'#9aa041',display:'block',borderStyle: 'outset'},
- 
-      },
-    [
-        React.createElement('div',{className:'Header-end',style:{width:'97%', height:'30px'},
-      onClick:this.getEngList
-      },fellows[index].name),
-       
-        React.createElement('div',{
-          key:fellows[index].email,
-          id:fellows[index].email
-        },
-
-        )
-    ]
-      )
-     )
-          
-    }
-    ReactDOM.render( 
-      fellowsDiv,  
-      document.getElementById("fellows") 
-    ) 
+    else
+      renderFellowlist(list.data,data,this.getEngList)
   })
   }
 }
 
   render() {
-
+    
     return (
       <div className="App">
       <title>LMS Performance Tracker</title>
@@ -270,11 +244,10 @@ if(!storeObject.hasActiveUsers()){ //taking advantage of the store state
           <course-tag id ='course-tag'>
             Course ID <input onChange = {this.updateCourse}/>
           </course-tag>
-          
+
           <general-list id = 'general-list'><a onClick={this.fetchActiveUsers}>Active Engineers</a>
           </general-list>
-          
-         
+
           <calendar-button>
             <img width = '20px' height = 'auto' src = {google_ca}
                 onClick ={this.handleCalendarEvents}
@@ -284,11 +257,14 @@ if(!storeObject.hasActiveUsers()){ //taking advantage of the store state
           <img src={logo} id ='logo' className="App-logo" alt="logo" 
           /> 
           </header>
+          <Select/>
+
         </div>
         
         {/* </StickyHeader> */}
         <div className ='_body'> 
           <div id = 'fellows'></div>
+          <FellowList context = {this.state} getEngList = {this.getEngList}/>
           <div id = 'results'>
           <div id = 'tableData'>
           </div>
