@@ -9,6 +9,9 @@ This is an external LMS app for easily getting an overview of how cohort enginee
 
 3. You are provided with example.env files in both root and server directories. Copy their content into the sister .env files you will create in the respective directories.
 
+3. Create .env files in both root and server directories.
+4. Copy contents of example.env files in both root and server directories into the respective .env files.
+
 ## How to run the app?
 
 In the project directory, you can run:
