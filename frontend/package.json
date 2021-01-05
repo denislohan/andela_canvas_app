@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "arr_list": "^1.0.3",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "dotenv": "^8.1.0",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-15": "^1.4.0",
